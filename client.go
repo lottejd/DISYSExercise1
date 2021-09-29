@@ -121,23 +121,6 @@ func printResult(in string) {
 	fmt.Println(result)
 }
 
-func allString() string {
-	var builder strings.Builder
-	builder.WriteString("curl http://localhost:8080/courses --header ")
-	builder.WriteString("\"")
-	builder.WriteString("Content-Type: application/json")
-	builder.WriteString("\"")
-	builder.WriteString(" --request ")
-	builder.WriteString("\"")
-	builder.WriteString("GET")
-	builder.WriteString("\"")
-	builder.WriteString(" -UseBasicParsing")
-
-	fmt.Println(builder.String())
-
-	return builder.String()
-}
-
 //get,course,1
 //new,course,4,10,90
 //get,all
