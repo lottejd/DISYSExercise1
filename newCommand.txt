@@ -1,0 +1,5 @@
+curl http://localhost:8080/courses ^
+   --include ^
+   --header "Content-Type: application/json" ^
+   --request "POST" ^
+   --data "{\"id\": \"4\", \"Workload\": 10, \"Rating\": 60}"
