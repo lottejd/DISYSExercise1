@@ -47,6 +47,11 @@ func postCourse(c *gin.Context) {
 	}
 
 	courses = append(courses, newCourse)
+
+	sort.Slice(courses, func(i, j int) bool {
+		return courses[i].ID < courses[j].ID
+	})
+
 	c.IndentedJSON(http.StatusCreated, newCourse)
 }
 
@@ -63,8 +68,7 @@ func getCourseByID(c *gin.Context) {
 }
 
 func updateCourse(c *gin.Context) {
-	idstring := c.Params.ByName("id")
-	id, err := strconv.ParseInt(idstring, 0, 64)
+	id := c.Params.ByName("id")
 	workload, err := strconv.ParseInt(c.Params.ByName("workload"), 0, 32)
 	if err != nil {
 		log.Fatalln(err)
@@ -73,49 +77,56 @@ func updateCourse(c *gin.Context) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	updatedcourse := Course{idstring, workload, rating}
 
-	fmt.Println("Deleting course...")
+	newC := Course{id, workload, rating}
+	oldCourses := courses
 
-	for _, a := range courses {
-		ID, err := strconv.ParseInt(a.ID, 0, 64)
-		if err == nil && ID == id {
-			if int64(len(courses)) == id+1 {
-				courses = courses[:id]
-			} else if id == 0 {
-				courses = courses[id+1:]
-			} else {
-				courses = append(courses[:id], courses[id+1:]...)
+	courses = courses[0:0]
+
+	for _, a := range oldCourses {
+		if err == nil && a.ID == id {
+			fmt.Println(len(courses))
+			for _, c := range oldCourses {
+				if c.ID != a.ID {
+					courses = append(courses, c)
+				}
 			}
+
 		}
+
 	}
-	fmt.Println("Appending updated course...")
-	courses = append(courses, updatedcourse)
-	c.Bind(&updatedcourse)
-	c.IndentedJSON(http.StatusCreated, updatedcourse)
+
+	courses = append(courses, newC)
 
 	sort.Slice(courses, func(i, j int) bool {
 		return courses[i].ID < courses[j].ID
 	})
+
+	c.IndentedJSON(http.StatusOK, newC)
 }
 
 func delCourse(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 0, 64)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	id := c.Params.ByName("id")
 
-	for _, a := range courses {
-		ID, err := strconv.ParseInt(a.ID, 0, 64)
-		if err == nil && ID == id {
-			if int64(len(courses)) == id+1 {
-				courses = courses[:id]
-			} else if id == 0 {
-				courses = courses[id+1:]
-			} else {
-				courses = append(courses[:id], courses[id+1:]...)
+	oldCourses := courses
+
+	courses = courses[0:0]
+
+	for _, a := range oldCourses {
+		ID := a.ID
+		if ID == id {
+			fmt.Println(len(courses))
+			for _, c := range oldCourses {
+				if c.ID != a.ID {
+					courses = append(courses, c)
+				}
 			}
-			return
+			c.IndentedJSON(http.StatusOK, a)
 		}
 	}
+
+	sort.Slice(courses, func(i, j int) bool {
+		return courses[i].ID < courses[j].ID
+	})
+
 }
