@@ -46,17 +46,24 @@ func readInput(in string) {
 		}
 		break
 
-		/* case "delete":
-			//deleteCourse(split[2])
-			break
+	case "delete":
+		deleteCourse(split[2])
+		break
 
-		case "update":
-			var id string = split[2]
-			workload, err := strconv.ParseInt(split[3], 2, 32)
-			rating, err := strconv.ParseInt(split[4], 2, 32)
+	case "update":
+		var id string = split[2]
+		workload, err := strconv.ParseInt(split[3], 0, 32)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		rating, err := strconv.ParseInt(split[4], 0, 64)
 
-			//putCourse(id,workload,rating)
-			break */
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		putCourse(id, workload, rating)
+		break
 	}
 
 }
@@ -112,6 +119,9 @@ func newCourse(_id string, _workload int64, _rating int64) {
 	fmt.Println("2. Performing Http Post...")
 	newc := Course{_id, _workload, _rating}
 	jsonReq, err := json.Marshal(newc)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	resp, err := http.Post("http://localhost:8080/courses", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		log.Fatalln(err)
@@ -130,18 +140,64 @@ func newCourse(_id string, _workload int64, _rating int64) {
 	fmt.Printf("%+v\n", newcourse)
 }
 
-/* func printResult(in string) {
-	index := strings.Index(in, "\"id\"")
-	result := string(in[index : index+100])
-	result = strings.TrimSpace(result)
-	result = strings.ReplaceAll(result, " ", "")
+func deleteCourse(_id string) {
+	fmt.Println("Performing Http Delete...")
+	newc := Course{"4", 10, 80}
+	jsonReq, err := json.Marshal(newc)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	req, err := http.NewRequest(http.MethodDelete, "http://localhost:8080/courses/"+_id, bytes.NewBuffer(jsonReq))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	fmt.Println("\nInfo for course:")
-	fmt.Println(result)
-} */
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	// Convert response body to string
+	bodyString := string(bodyBytes)
+	fmt.Println("Body: " + bodyString)
+}
+
+func putCourse(_id string, _workload int64, _rating int64) {
+	fmt.Println("Performing Http Put...")
+	newc := Course{_id, _workload, _rating}
+	jsonReq, err := json.Marshal(newc)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	req, err := http.NewRequest(http.MethodPut, "http://localhost:8080/courses/"+_id+"/"+fmt.Sprint(_workload)+"/"+fmt.Sprint(_rating), bytes.NewBuffer(jsonReq))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	// Convert response body to string
+	bodyString := string(bodyBytes)
+	fmt.Println("Body: " + bodyString)
+
+	// Convert response body to Todo struct
+	var newcourse Course
+	json.Unmarshal(bodyBytes, &newcourse)
+	fmt.Printf("API Response as struct:\n%+v\n", newcourse)
+}
 
 //get,course,1
 //new,course,4,10,90
-//get,all
-//(delete,course,1)
-//(update,course,3,10,90)
+//get,all,courses
+//delete,course,1
+//update,course,2,10,90

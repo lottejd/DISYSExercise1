@@ -1,3 +1,0 @@
-curl http://localhost:8080/courses ^
---header "Content-Type: application/json" ^
---request "GET"

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"sort"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,9 +17,9 @@ type Course struct {
 }
 
 var courses = []Course{
-	{ID: "1", Workload: 10, Rating: 80},
-	{ID: "2", Workload: 10, Rating: 90},
-	{ID: "3", Workload: 20, Rating: 75},
+	{ID: "0", Workload: 10, Rating: 80},
+	{ID: "1", Workload: 10, Rating: 90},
+	{ID: "2", Workload: 20, Rating: 75},
 }
 
 func mainServer() {
@@ -23,6 +27,8 @@ func mainServer() {
 	router.GET("/courses", getCourses)
 	router.GET("/courses/:id", getCourseByID)
 	router.POST("/courses", postCourse)
+	router.DELETE("/courses/:id", delCourse)
+	router.PUT("/courses/:id/:workload/:rating", updateCourse)
 
 	router.Run("localhost:8080")
 }
@@ -55,40 +61,62 @@ func getCourseByID(c *gin.Context) {
 }
 
 func updateCourse(c *gin.Context) {
-	id := c.Params.ByName("id")
-	var course Course
+	idstring := c.Params.ByName("id")
+	id, err := strconv.ParseInt(idstring, 0, 64)
+	workload, err := strconv.ParseInt(c.Params.ByName("workload"), 0, 32)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	rating, err := strconv.ParseInt(c.Params.ByName("rating"), 0, 32)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	updatedcourse := Course{idstring, workload, rating}
+
+	fmt.Println("Deleting course...")
 
 	for _, a := range courses {
-		if a.ID == id {
-			course = a
-			return
+		ID, err := strconv.ParseInt(a.ID, 0, 64)
+		if err == nil && ID == id {
+			if int64(len(courses)) == id+1 {
+				courses = courses[:id]
+			} else if id == 0 {
+				courses = courses[id+1:]
+			} else {
+				courses = append(courses[:id], courses[id+1:]...)
+			}
 		}
 	}
-	c.Bind(&course)
+	fmt.Println("Appending updated course...")
+	courses = append(courses, updatedcourse)
+	c.Bind(&updatedcourse)
+	c.IndentedJSON(http.StatusCreated, updatedcourse)
 
-	courses = append(courses, course)
-	c.IndentedJSON(http.StatusCreated, course)
-
-	// curl -i -X PUT -H "Content-Type: application/json" -d "{ \"firstname\": \"Thea\", \"lastname\": \"Merlyn\" }" http://localhost:8080/api/v1/users/1
+	sort.Slice(courses, func(i, j int) bool {
+		return courses[i].ID < courses[j].ID
+	})
 }
 
-/* func deleteCourse(c *gin.Context) {
-	id := c.Params.ByName("id")
-	var course course
+func delCourse(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Params.ByName("id"), 0, 64)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	for _, a := range courses {
-		if a.ID == id {
-			course = a
+		ID, err := strconv.ParseInt(a.ID, 0, 64)
+		if err == nil && ID == id {
+			if int64(len(courses)) == id+1 {
+				courses = courses[:id]
+			} else if id == 0 {
+				courses = courses[id+1:]
+			} else {
+				courses = append(courses[:id], courses[id+1:]...)
+			}
 			return
 		}
 	}
-
-	//delete the course here
-
-	c.JSON(200, gin.H{"success": "Course #" + id + " deleted"})
-
-	// curl -i -X DELETE http://localhost:8080/api/v1/users/1
-} */
+}
 
 //Command for posting
 /* curl http://localhost:8080/courses ^
