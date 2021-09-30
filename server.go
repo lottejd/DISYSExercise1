@@ -6,19 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type course struct {
+type Course struct {
 	ID       string `json:"id"`
-	Workload int    `json:"workload"`
-	Rating   int    `json:"rating"`
+	Workload int64  `json:"workload"`
+	Rating   int64  `json:"rating"`
 }
 
-var courses = []course{
+var courses = []Course{
 	{ID: "1", Workload: 10, Rating: 80},
 	{ID: "2", Workload: 10, Rating: 90},
 	{ID: "3", Workload: 20, Rating: 75},
 }
 
-func main() {
+func mainServer() {
 	router := gin.Default()
 	router.GET("/courses", getCourses)
 	router.GET("/courses/:id", getCourseByID)
@@ -32,7 +32,7 @@ func getCourses(c *gin.Context) {
 }
 
 func postCourse(c *gin.Context) {
-	var newCourse course
+	var newCourse Course
 
 	if err := c.BindJSON(&newCourse); err != nil {
 		return
@@ -56,7 +56,7 @@ func getCourseByID(c *gin.Context) {
 
 func updateCourse(c *gin.Context) {
 	id := c.Params.ByName("id")
-	var course course
+	var course Course
 
 	for _, a := range courses {
 		if a.ID == id {

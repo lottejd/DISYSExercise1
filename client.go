@@ -1,15 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
-	"os"
-	"os/exec"
+	"net/http"
 	"strconv"
 	"strings"
 )
 
-func main() {
+func mainClient() {
 	var temp string
 
 	for {
@@ -63,55 +65,72 @@ func getAllCourses() {
 
 	fmt.Println("running get all")
 
-	command, e := os.ReadFile("./allCommand.txt")
-
-	if e != nil {
-		log.Fatal(e)
-	}
-
-	out, err := exec.Command("PowerShell", string(command)).Output()
-	fmt.Println(out)
-	printResult(string(out))
-
+	resp, err := http.Get("http://localhost:8080/courses")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
+
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	// Convert response body to string
+	bodyString := string(bodyBytes)
+	fmt.Println("API Response as String:\n" + bodyString)
+
+	// Convert response body to Todo struct
+	var c []Course
+	json.Unmarshal(bodyBytes, &c)
+	fmt.Printf("API Response as struct %+v\n", c)
+
 }
 
 func getCourseById(_id string) {
 	fmt.Println("running get " + _id)
-	command, e := os.ReadFile("./idCommand.txt")
 
-	if e != nil {
-		log.Fatal(e)
-	}
-
-	out, err := exec.Command("PowerShell", string(command)).Output()
-	printResult(string(out))
-
+	resp, err := http.Get("http://localhost:8080/courses/" + _id)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
+
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	// Convert response body to string
+	bodyString := string(bodyBytes)
+	fmt.Println("API Response as String:\n" + bodyString)
+
+	// Convert response body to Todo struct
+	var c Course
+	json.Unmarshal(bodyBytes, &c)
+	fmt.Printf("API Response as struct %+v\n", c)
 
 }
 
 func newCourse(_id string, _workload int64, _rating int64) {
 	fmt.Println("running new " + _id)
-	command, e := os.ReadFile("./newCommand.txt")
 
-	if e != nil {
-		log.Fatal(e)
-	}
-
-	out, err := exec.Command("PowerShell", string(command)).Output()
-	printResult(string(out))
-
+	fmt.Println("2. Performing Http Post...")
+	newc := Course{_id, _workload, _rating}
+	jsonReq, err := json.Marshal(newc)
+	resp, err := http.Post("http://localhost:8080/courses", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
+
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	// Convert response body to string
+	bodyString := string(bodyBytes)
+	fmt.Println(bodyString)
+
+	// Convert response body to Todo struct
+	var newcourse Course
+	json.Unmarshal(bodyBytes, &newcourse)
+	fmt.Printf("%+v\n", newcourse)
 }
 
-func printResult(in string) {
+/* func printResult(in string) {
 	index := strings.Index(in, "\"id\"")
 	result := string(in[index : index+100])
 	result = strings.TrimSpace(result)
@@ -119,7 +138,7 @@ func printResult(in string) {
 
 	fmt.Println("\nInfo for course:")
 	fmt.Println(result)
-}
+} */
 
 //get,course,1
 //new,course,4,10,90
