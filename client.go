@@ -11,16 +11,17 @@ import (
 	"strings"
 )
 
+//Listen to the terminal, and when input comes in, read it
 func mainClient() {
 	var temp string
 
 	for {
 		fmt.Scanln(&temp)
-		fmt.Println(temp)
 		readInput(temp)
 	}
 }
 
+//Read input to assert command and parameters of the input
 func readInput(in string) {
 	var split []string = strings.Split(in, ",")
 
@@ -31,7 +32,6 @@ func readInput(in string) {
 		} else {
 			getCourseById(split[2])
 		}
-		break
 
 	case "new":
 		var id string = split[2]
@@ -44,11 +44,9 @@ func readInput(in string) {
 			log.Fatal(err)
 			log.Fatal(er)
 		}
-		break
 
 	case "delete":
 		deleteCourse(split[2])
-		break
 
 	case "update":
 		var id string = split[2]
@@ -63,14 +61,15 @@ func readInput(in string) {
 		}
 
 		putCourse(id, workload, rating)
-		break
+
+	default:
+		fmt.Println("Could not understand input. See the readme.md file for info on commands")
 	}
 
 }
 
 func getAllCourses() {
-
-	fmt.Println("running get all")
+	fmt.Println("Running get all")
 
 	resp, err := http.Get("http://localhost:8080/courses")
 	if err != nil {
@@ -80,19 +79,15 @@ func getAllCourses() {
 	defer resp.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 
-	// Convert response body to string
-	bodyString := string(bodyBytes)
-	fmt.Println("API Response as String:\n" + bodyString)
-
-	// Convert response body to Todo struct
+	// Convert response body to Course struct
 	var c []Course
 	json.Unmarshal(bodyBytes, &c)
-	fmt.Printf("API Response as struct %+v\n", c)
+	fmt.Printf("Response: %+v\n", c)
 
 }
 
 func getCourseById(_id string) {
-	fmt.Println("running get " + _id)
+	fmt.Println("Running get " + _id)
 
 	resp, err := http.Get("http://localhost:8080/courses/" + _id)
 	if err != nil {
@@ -102,21 +97,16 @@ func getCourseById(_id string) {
 	defer resp.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 
-	// Convert response body to string
-	bodyString := string(bodyBytes)
-	fmt.Println("API Response as String:\n" + bodyString)
-
-	// Convert response body to Todo struct
+	// Convert response body to Course struct
 	var c Course
 	json.Unmarshal(bodyBytes, &c)
-	fmt.Printf("API Response as struct %+v\n", c)
+	fmt.Printf("Response: %+v\n", c)
 
 }
 
 func newCourse(_id string, _workload int64, _rating int64) {
-	fmt.Println("running new " + _id)
+	fmt.Println("Running new " + _id)
 
-	fmt.Println("2. Performing Http Post...")
 	newc := Course{_id, _workload, _rating}
 	jsonReq, err := json.Marshal(newc)
 	if err != nil {
@@ -130,18 +120,14 @@ func newCourse(_id string, _workload int64, _rating int64) {
 	defer resp.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 
-	// Convert response body to string
-	bodyString := string(bodyBytes)
-	fmt.Println(bodyString)
-
-	// Convert response body to Todo struct
+	// Convert response body to Course struct
 	var newcourse Course
 	json.Unmarshal(bodyBytes, &newcourse)
-	fmt.Printf("%+v\n", newcourse)
+	fmt.Printf("Response: %+v\n", newcourse)
 }
 
 func deleteCourse(_id string) {
-	fmt.Println("Performing Http Delete...")
+	fmt.Println("Running delete " + _id)
 	newc := Course{"4", 10, 80}
 	jsonReq, err := json.Marshal(newc)
 	if err != nil {
@@ -158,15 +144,12 @@ func deleteCourse(_id string) {
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 
-	// Convert response body to string
-	bodyString := string(bodyBytes)
-	fmt.Println("Body: " + bodyString)
+	fmt.Println("Deleted course " + _id)
 }
 
 func putCourse(_id string, _workload int64, _rating int64) {
-	fmt.Println("Performing Http Put...")
+	fmt.Println("Running put " + _id)
 	newc := Course{_id, _workload, _rating}
 	jsonReq, err := json.Marshal(newc)
 	if err != nil {
@@ -186,18 +169,8 @@ func putCourse(_id string, _workload int64, _rating int64) {
 	defer resp.Body.Close()
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 
-	// Convert response body to string
-	bodyString := string(bodyBytes)
-	fmt.Println("Body: " + bodyString)
-
-	// Convert response body to Todo struct
+	// Convert response body to Course struct
 	var newcourse Course
 	json.Unmarshal(bodyBytes, &newcourse)
-	fmt.Printf("API Response as struct:\n%+v\n", newcourse)
+	fmt.Printf("Response:\n%+v\n", newcourse)
 }
-
-//get,course,1
-//new,course,4,10,90
-//get,all,courses
-//delete,course,1
-//update,course,2,10,90

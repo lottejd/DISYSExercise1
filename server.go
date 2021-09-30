@@ -16,12 +16,14 @@ type Course struct {
 	Rating   int64  `json:"rating"`
 }
 
+//Hard-coded instances
 var courses = []Course{
 	{ID: "0", Workload: 10, Rating: 80},
 	{ID: "1", Workload: 10, Rating: 90},
 	{ID: "2", Workload: 20, Rating: 75},
 }
 
+//The server runs using gin's router. Here possible commands are defined
 func mainServer() {
 	router := gin.Default()
 	router.GET("/courses", getCourses)
@@ -117,18 +119,3 @@ func delCourse(c *gin.Context) {
 		}
 	}
 }
-
-//Command for posting
-/* curl http://localhost:8080/courses ^
-   --include ^
-   --header "Content-Type: application/json" ^
-   --request "POST" ^
-   --data "{\"id\": \"4\", \"Workload\": 10, \"Rating\": 60}" */
-
-//Command for getting
-/* curl http://localhost:8080/courses ^
---header "Content-Type: application/json" ^
---request "GET" */
-
-//Command for get by id=2
-// curl http://localhost:8080/courses/2
